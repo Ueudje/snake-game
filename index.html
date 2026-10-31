@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A modern, responsive Snake game." />
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <section class="game-card" aria-labelledby="game-title">
+      <header class="game-header">
+        <div>
+          <p class="eyebrow">CLASSIC ARCADE</p>
+          <h1 id="game-title">Snake</h1>
+        </div>
+        <div class="scores" aria-label="Scores">
+          <div class="score-box"><span>Score</span><strong id="score">0</strong></div>
+          <div class="score-box"><span>Best</span><strong id="best-score">0</strong></div>
+        </div>
+      </header>
+
+      <div class="board-wrap">
+        <div id="game-board" class="game-board" role="grid" aria-label="Snake game board" tabindex="0"></div>
+        <div id="message-overlay" class="message-overlay">
+          <div class="message-card">
+            <p id="message-kicker" class="eyebrow">READY?</p>
+            <h2 id="message-title">Let's play</h2>
+            <p id="message-text">Use arrow keys, WASD, or swipe to guide the snake.</p>
+            <p id="final-score" class="final-score" hidden>Final score: 0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" aria-label="Game controls">
+        <button id="start-button" class="button button-primary" type="button">Start Game</button>
+        <button id="pause-button" class="button" type="button" disabled>Pause</button>
+        <button id="restart-button" class="button button-ghost" type="button">Restart</button>
+      </div>
+      <p class="help-text">Use <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> · Swipe on the board on mobile</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

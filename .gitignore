@@ -1,0 +1,13 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor folders and temporary files
+.vscode/
+.idea/
+*.tmp
+*.log
+
+# Local dependency folders (not used by this project, kept for future tooling)
+node_modules/
