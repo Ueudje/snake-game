@@ -29,9 +29,10 @@ const finalScore = document.querySelector("#final-score");
 let snake;
 let food;
 let direction;
-let nextDirection;
+// Keep only a couple of upcoming turns so quick inputs are not lost.
+let directionQueue = [];
 let score;
-let bestScore = Number(localStorage.getItem("snakeBestScore")) || 0;
+let bestScore = loadBestScore();
 let timerId = null;
 let gameStarted = false;
 let paused = false;
@@ -45,7 +46,7 @@ function resetGame() {
   timerId = null;
   snake = STARTING_SNAKE.map(segment => ({ ...segment }));
   direction = { x: 1, y: 0 };
-  nextDirection = { x: 1, y: 0 };
+  directionQueue = [];
   score = 0;
   food = createFood();
   gameStarted = false;
@@ -70,11 +71,19 @@ function startGame() {
   pauseButton.disabled = false;
   hideMessage();
   board.focus();
+  startTimer();
+}
+
+function startTimer() {
+  // Clearing first guarantees that resume cannot create a second game loop.
+  clearInterval(timerId);
   timerId = setInterval(gameLoop, 115);
 }
 
 function gameLoop() {
-  direction = nextDirection;
+  // A queued direction is consumed once per movement step.
+  if (!gameStarted || paused) return;
+  direction = directionQueue.shift() || direction;
   const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
   // A wall collision ends the game before the snake is moved.
@@ -83,7 +92,7 @@ function gameLoop() {
     return;
   }
 
-  const ateFood = head.x === food.x && head.y === food.y;
+  const ateFood = food !== null && head.x === food.x && head.y === food.y;
   // Moving into the current tail is allowed when it will move away this turn.
   const bodyToCheck = ateFood ? snake : snake.slice(0, -1);
   if (bodyToCheck.some(segment => segment.x === head.x && segment.y === head.y)) {
@@ -125,7 +134,7 @@ function drawBoard() {
   for (let y = 0; y < GRID_SIZE; y += 1) {
     for (let x = 0; x < GRID_SIZE; x += 1) {
       let classes = "cell";
-      if (x === food.x && y === food.y) classes += " food";
+      if (food && x === food.x && y === food.y) classes += " food";
       if (snakeCells.has(`${x},${y}`)) classes += x === snake[0].x && y === snake[0].y ? " snake snake-head" : " snake";
       cells += `<div class="${classes}" role="gridcell"></div>`;
     }
@@ -134,23 +143,50 @@ function drawBoard() {
 }
 
 function setDirection(newDirection) {
-  // Prevent the snake from making an immediate 180-degree turn.
-  if (newDirection.x === -direction.x && newDirection.y === -direction.y) return;
-  nextDirection = newDirection;
+  // Compare to the last queued turn, or current heading when the queue is empty.
+  const lastDirection = directionQueue.length
+    ? directionQueue[directionQueue.length - 1]
+    : direction;
+  const isSameDirection = newDirection.x === lastDirection.x && newDirection.y === lastDirection.y;
+  const isReverse = newDirection.x === -lastDirection.x && newDirection.y === -lastDirection.y;
+
+  // Two turns is enough to buffer quick input without building a long backlog.
+  if (isSameDirection || isReverse || directionQueue.length >= 2) return;
+  directionQueue.push({ ...newDirection });
+}
+
+function handleDirectionInput(newDirection) {
+  // Preserve the first turn when a direction key starts a new round after game over.
+  if (gameOver) {
+    startGame();
+    setDirection(newDirection);
+    return;
+  }
+
+  setDirection(newDirection);
+  if (!gameStarted && !paused) startGame();
 }
 
 function togglePause() {
   if (!gameStarted) return;
-  paused = !paused;
-  pauseButton.textContent = paused ? "Resume" : "Pause";
   if (paused) {
-    clearInterval(timerId);
-    showMessage("PAUSED", "Take a breath", "Press Resume when you're ready.");
-  } else {
+    paused = false;
+    pauseButton.textContent = "Pause";
     hideMessage();
-    timerId = setInterval(gameLoop, 115);
+    startTimer();
     board.focus();
+  } else {
+    pauseGame();
   }
+}
+
+function pauseGame() {
+  if (!gameStarted || paused) return;
+  paused = true;
+  clearInterval(timerId);
+  timerId = null;
+  pauseButton.textContent = "Resume";
+  showMessage("PAUSED", "Take a breath", "Press Resume when you're ready.");
 }
 
 function endGame(won = false) {
@@ -175,8 +211,22 @@ function endGame(won = false) {
 function updateBestScore() {
   if (score > bestScore) {
     bestScore = score;
-    localStorage.setItem("snakeBestScore", bestScore);
     bestScoreElement.textContent = bestScore;
+    try {
+      localStorage.setItem("snakeBestScore", bestScore);
+    } catch (error) {
+      // Keep the in-memory record even when this browser blocks storage.
+    }
+  }
+}
+
+function loadBestScore() {
+  try {
+    const storedScore = Number(localStorage.getItem("snakeBestScore"));
+    return Number.isFinite(storedScore) && storedScore > 0 ? storedScore : 0;
+  } catch (error) {
+    // Storage is optional; the game still tracks a best score for this session.
+    return 0;
   }
 }
 
@@ -192,15 +242,29 @@ function showMessage(kicker, title, text, scoreText = "") {
 function hideMessage() { overlay.classList.add("hidden"); }
 
 document.addEventListener("keydown", event => {
+  // Leave button activation, links, and editable controls to the browser.
+  const target = event.target;
+  const focusableTarget = target.closest && target.closest(
+    "button, a[href], input, select, textarea, summary, [role='button'], [role='link'], [role='textbox'], [role='searchbox'], [role='combobox'], [tabindex]:not([tabindex='-1'])"
+  );
+  const editableTarget = target.isContentEditable || (target.closest && target.closest(
+    "[contenteditable]:not([contenteditable='false'])"
+  ));
+  const boardHasFocus = focusableTarget === board;
+  if ((focusableTarget && !boardHasFocus) || editableTarget || event.altKey || event.ctrlKey || event.metaKey) return;
+
   const newDirection = DIRECTIONS[event.key];
   if (newDirection) {
     event.preventDefault();
-    setDirection(newDirection);
-    if (!gameStarted && !paused) startGame();
-  } else if (event.key === " ") {
+    handleDirectionInput(newDirection);
+  } else if (event.key === " " || event.code === "Space") {
     event.preventDefault();
     togglePause();
   }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pauseGame();
 });
 
 board.addEventListener("touchstart", event => {
@@ -215,8 +279,11 @@ board.addEventListener("touchend", event => {
   const dy = touch.clientY - touchStart.y;
   touchStart = null;
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-  setDirection(Math.abs(dx) > Math.abs(dy) ? { x: Math.sign(dx), y: 0 } : { x: 0, y: Math.sign(dy) });
-  if (!gameStarted && !paused) startGame();
+  handleDirectionInput(
+    Math.abs(dx) > Math.abs(dy)
+      ? { x: Math.sign(dx), y: 0 }
+      : { x: 0, y: Math.sign(dy) }
+  );
 }, { passive: true });
 
 startButton.addEventListener("click", startGame);
