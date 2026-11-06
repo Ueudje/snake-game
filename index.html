@@ -16,23 +16,26 @@
           <h1 id="game-title">Snake</h1>
         </div>
         <div class="scores" aria-label="Scores">
-          <div class="score-box"><span>Score</span><strong id="score">0</strong></div>
+          <div class="score-box"><span>Score</span><strong id="score" aria-live="polite" aria-atomic="true">0</strong></div>
+          <div class="score-box"><span>Level</span><strong id="level">1</strong></div>
           <div class="score-box"><span>Best</span><strong id="best-score">0</strong></div>
         </div>
       </header>
 
       <div class="board-wrap">
-        <div id="game-board" class="game-board" role="group" aria-label="Snake game board" tabindex="0">
+        <div id="game-board" class="game-board" role="group" aria-label="Snake game board" aria-describedby="help-text" tabindex="0">
           <div id="food" class="food" aria-hidden="true"></div>
           <div id="snake-layer" class="snake-layer" aria-hidden="true"></div>
           <div id="food-effect" class="food-effect" aria-hidden="true"></div>
         </div>
         <div id="message-overlay" class="message-overlay">
-          <div class="message-card">
+          <div class="message-card" role="status" aria-live="polite" aria-atomic="true">
             <p id="message-kicker" class="eyebrow">READY?</p>
             <h2 id="message-title">Let's play</h2>
-            <p id="message-text">Use arrow keys, WASD, or swipe to guide the snake.</p>
+            <p id="message-text">Tap here or press Enter or Space to start. Steer with the arrow keys, WASD, or a swipe.</p>
             <p id="final-score" class="final-score" hidden>Final score: 0</p>
+            <p id="new-best-message" class="record-message" hidden>New best!</p>
+            <p id="result-details" class="result-details" hidden></p>
           </div>
         </div>
       </div>
@@ -42,7 +45,20 @@
         <button id="pause-button" class="button" type="button" disabled>Pause</button>
         <button id="restart-button" class="button button-ghost" type="button">Restart</button>
       </div>
-      <p class="help-text">Use <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> · Swipe on the board on mobile</p>
+
+      <div class="game-options" aria-label="Game options">
+        <p class="level-hint">Every 5 apples brings a new level and more speed.</p>
+        <button id="sound-button" class="button button-quiet" type="button" aria-label="Mute sound" aria-pressed="true">
+          <svg class="speaker-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+            <path class="speaker-wave" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path>
+            <path class="speaker-mute" d="m16 9 5 6m0-6-5 6"></path>
+          </svg>
+          <span id="sound-label">Sound: On</span>
+        </button>
+      </div>
+
+      <p id="help-text" class="help-text">Steer: <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> · Pause: <kbd>P</kbd>/<kbd>Esc</kbd>/<kbd>Space</kbd> · Swipe on mobile</p>
     </section>
   </main>
 

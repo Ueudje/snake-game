@@ -7,10 +7,22 @@ A small, responsive browser version of the classic Snake game. It is built with 
 - Arrow-key and WASD controls
 - Touch swipe controls for phones and tablets
 - Start, pause/resume, and restart controls
+- Levels every five apples, with automatic speed increases from 130 ms to 70 ms per step
+- Countdown before each round and after resuming from a pause
+- Synthesized arcade sounds with a mute toggle (on by default)
 - Score and persistent best score (saved in the browser)
+- Games-played count and new-best feedback
 - Wall and self-collision detection
 - Game-over and board-cleared states
 - Responsive, accessible interface
+
+## Controls
+
+- Steer with the arrow keys or WASD. On mobile, swipe on the game board.
+- Tap the message or press `Enter` or `Space` to start a ready game.
+- Press `P`, `Esc`, or `Space` to pause and resume while playing.
+- Use **Restart** to begin a fresh round at any time.
+- Sound is on by default and can be muted with the speaker button.
 
 ## Run locally
 
