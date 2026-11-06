@@ -22,7 +22,11 @@
       </header>
 
       <div class="board-wrap">
-        <div id="game-board" class="game-board" role="grid" aria-label="Snake game board" tabindex="0"></div>
+        <div id="game-board" class="game-board" role="group" aria-label="Snake game board" tabindex="0">
+          <div id="food" class="food" aria-hidden="true"></div>
+          <div id="snake-layer" class="snake-layer" aria-hidden="true"></div>
+          <div id="food-effect" class="food-effect" aria-hidden="true"></div>
+        </div>
         <div id="message-overlay" class="message-overlay">
           <div class="message-card">
             <p id="message-kicker" class="eyebrow">READY?</p>
